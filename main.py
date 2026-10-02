@@ -2,7 +2,7 @@ import sys
 import os
 import time
 from threading import Thread
-from flask import Flask
+from flask import Flask, render_template
 
 # प्रोजेक्ट फोल्डर को पथ में जोड़ना ताकि इम्पोर्ट करने में कोई दिक्कत न आए
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
