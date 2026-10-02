@@ -54,6 +54,11 @@ def background_worker():
                 print(f"✅ Connection successful! Page HTML fetched.")
                 soup = scraper.parse_content(html)
             else:
+                if soup:
+                items = scraper.extract_items(soup)
+                if items:
+                    DBManager.save_data(items)
+                    print(f"✅ {len(items)} items saved to database successfully!")
                 print(f"⚠️ Connection failed or blocked. Testing AI Healer...")
                 healer.analyze_and_heal("Connection Timeout / Cloudflare Block")
                 
