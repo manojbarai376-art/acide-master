@@ -9,7 +9,10 @@ class BaseScraper:
     def fetch_page(self):
         """टार्गेट वेबसाइट से पेज का HTML फेच करने के लिए"""
         try:
-            response = requests.get(self.target_url, timeout=10)
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+            response = requests.get(self.target_url, headers=headers, timeout=10)
             if response.status_code == 200:
                 return response.text
             else:
