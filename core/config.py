@@ -4,7 +4,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # टारगेट वेबसाइट का यूआरएल (Anime Salt)
-ANIME_SALT_URL = "https://animesalt.cx/"
+ANIME_SHIELD_URL = "https://animesalt.cx/"
 
 # डेटाबेस फाइल का पाथ (जहाँ लिंक्स सेव होंगे)
 DB_PATH = os.path.join(BASE_DIR, "database", "storage.json")

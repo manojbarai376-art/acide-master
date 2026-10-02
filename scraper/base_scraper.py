@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from core.config import ANIME_SHIELD_URL
 
 class BaseScraper:
-    def __init__(self, target_url=ANIME_SALT_URL):
+    def __init__(self, target_url=ANIME_SHIELD_URL):
         self.target_url = target_url
 
     def fetch_page(self):
