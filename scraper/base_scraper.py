@@ -1,0 +1,28 @@
+import requests
+from bs4 import BeautifulSoup
+from core.config import ANIME_SHIELD_URL
+
+class BaseScraper:
+    def __init__(self, target_url=ANIME_SALT_URL):
+        self.target_url = target_url
+
+    def fetch_page(self):
+        """टार्गेट वेबसाइट से पेज का HTML फेच करने के लिए"""
+        try:
+            response = requests.get(self.target_url, timeout=10)
+            if response.status_code == 200:
+                return response.text
+            else:
+                print(f"❌ Failed to fetch page. Status code: {response.status_code}")
+                return None
+        except Exception as e:
+            print(f"⚠️ Error connecting to website: {e}")
+            return None
+
+    def parse_content(self, html_content):
+        """HTML को पार्स करने के लिए सूप ऑब्जेक्ट लौटाएगा"""
+        if not html_content:
+            return None
+        return BeautifulSoup(html_content, 'html.parser')
+
+print("Base Scraper script ready!")
