@@ -4,3 +4,4 @@ customtkinter==5.2.2
 flask==3.0.2
 pytest==8.1.1
 cloudscraper
+gunicorn
