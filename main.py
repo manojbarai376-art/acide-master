@@ -17,8 +17,14 @@ from scraper.ai_healer import AIHealer
 app = Flask(__name__)
 
 @app.route('/')
-def home():
-    return f"{APP_NAME} v{VERSION} is running live and protected!"
+def index():
+    try:
+        db_data = DBManager.load_data()
+        items = db_data if isinstance(db_data, list) else []
+    except Exception as e:
+        items = []
+    
+    return render_template('index.html', items=items)
 
 def background_worker():
     """लूप में चलने वाला मुख्य स्क्रैपर वर्कर"""
