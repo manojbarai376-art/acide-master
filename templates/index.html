@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACID Master - Anime Hub</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+        }
+        h1 {
+            text-align: center;
+            color: #e50914;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .card {
+            background-color: #1f1f1f;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        .card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .card-content {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #f1f1f1;
+        }
+        .watch-btn {
+            background-color: #e50914;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .watch-btn:hover {
+            background-color: #b20710;
+        }
+        .no-data {
+            text-align: center;
+            grid-column: span 2;
+            color: #888;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ACID Master Anime Hub</h1>
+    <div class="grid">
+        {% if items %}
+            {% for item in items %}
+            <div class="card">
+                <img src="{{ item.poster }}" alt="{{ item.title }}">
+                <div class="card-content">
+                    <div class="card-title">{{ item.title }}</div>
+                    <a href="{{ item.link }}" target="_blank" class="watch-btn">▶ Watch Live</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-data">
+                <p>बोट अभी डेटा फेच कर रहा है भाई, थोड़ा इंतज़ार कर...</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
