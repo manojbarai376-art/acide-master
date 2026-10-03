@@ -17,6 +17,11 @@ from scraper.parser import AnimeParser
 # Flask ऐप ताकि Render इसे हमेशा ऑनलाइन समझे
 app = Flask(__name__)
 
+# बैकग्राउंड वर्कर यहाँ आ जाएगा
+t = Thread(target=background_worker)
+t.daemon = True
+t.start()
+
 @app.route('/')
 def index():
     try:
@@ -100,12 +105,6 @@ if __name__ == "__main__":
                     print(f"✅ Startup success! Saved {len(initial_items)} items.")
     except Exception as e:
         print(f"⚠️ Startup scrape error: {e}")
-
-    # 2. बैकग्राउंड वर्कर को अलग थ्रेड में शुरू करना
-    t = Thread(target=background_worker)
-    t.daemon = True
-    t.start()
-
     # 3. Render के लिए पोर्ट सेट करना
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
