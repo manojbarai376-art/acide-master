@@ -78,6 +78,6 @@ if __name__ == "__main__":
             if response.status_code == 200:
                 fixed_text = response.json().get("response", "").strip()
                 return json.loads(fixed_text)
-            except Exception as e:
-                print(f"AI Main Healer Error: {e}")
-            return []
+        except Exception as e:
+            print(f"AI Main Healer Error: {e}")
+        return []
