@@ -67,6 +67,7 @@ if __name__ == "__main__":
 
     def _ask_local_ai_to_fix_main_data(broken_data):
         import requests
+        import json
         try:
             payload = {
                 "model": "llama3",
@@ -75,7 +76,6 @@ if __name__ == "__main__":
         }
         response = requests.post("http://localhost:11434/api/generate", json=payload, timeout=5)
         if response.status_code == 200:
-            import json
             fixed_text = response.json().get("response", "").strip()
             return json.loads(fixed_text)
     except Exception as e:
