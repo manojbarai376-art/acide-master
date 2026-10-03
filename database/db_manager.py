@@ -38,13 +38,17 @@ class DBManager:
             if not title:
                 continue
 
-            image = str(item.get("image") or item.get("poster") or "").strip()
+            image = str(
+                item.get("image") or item.get("poster_url") or item.get("poster") or ""
+            ).strip()
             image = urljoin(anime_url, image) if image else ""
             if image and urlsplit(image).scheme not in {"http", "https"}:
                 image = ""
 
             normalized_item = {"title": title, "url": anime_url, "image": image}
-            video_url = item.get("video_url") or item.get("stream_url")
+            video_url = (
+                item.get("video_url") or item.get("stream_url") or item.get("playback_url")
+            )
             if video_url:
                 video_url = urljoin(anime_url, str(video_url).strip())
                 if urlsplit(video_url).scheme in {"http", "https"}:

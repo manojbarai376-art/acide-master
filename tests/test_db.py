@@ -57,6 +57,16 @@ def test_scrape_refresh_preserves_existing_poster_and_video_url(tmp_path, monkey
         "video_url": "https://cdn.example/anime.mp4",
     }]
 
+def test_media_field_aliases_are_normalized():
+    assert DBManager._normalize_data([{
+        "title": "Example", "url": "https://example.com/anime",
+        "poster_url": "/poster.webp", "playback_url": "/episode.mp4",
+    }]) == [{
+        "title": "Example", "url": "https://example.com/anime",
+        "image": "https://example.com/poster.webp",
+        "video_url": "https://example.com/episode.mp4",
+    }]
+
 def test_empty_postgres_is_seeded_from_local_json(tmp_path, monkeypatch):
     from unittest.mock import MagicMock
     from database import db_manager

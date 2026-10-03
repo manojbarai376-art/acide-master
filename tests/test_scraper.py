@@ -34,6 +34,22 @@ def test_parser_uses_series_title_and_lazy_poster():
     }]
 
 
+def test_parser_reads_lazy_poster_srcset():
+        from bs4 import BeautifulSoup
+        from scraper.parser import AnimeParser
+
+        soup = BeautifulSoup("""
+        <article class="flw-item">
+            <h3><a href="/series/example/" title="Example">Example</a></h3>
+            <img src="data:image/gif;base64,AA" data-srcset="/posters/example.webp 2x">
+        </article>
+        """, "html.parser")
+
+        assert AnimeParser().parse_anime_list(soup)[0]["image"] == (
+                "https://animesalt.cx/posters/example.webp"
+        )
+
+
 def test_legacy_season_title_and_placeholder_image_are_normalized():
     from database.db_manager import DBManager
 

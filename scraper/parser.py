@@ -82,22 +82,28 @@ class AnimeParser:
 
     def _image_url(self, image, card):
         if image:
-            for attribute in ("data-src", "data-lazy-src", "data-original", "data-image", "src"):
+            for attribute in (
+                "data-poster-url", "data-poster", "data-src", "data-lazy-src",
+                "data-original", "data-image", "src",
+            ):
                 image_url = self._absolute_http_url(image.get(attribute))
                 if image_url:
                     return image_url
-            srcset = image.get("srcset")
-            if srcset:
-                candidate = srcset.split(",", 1)[0].strip().split()[0]
-                image_url = self._absolute_http_url(candidate)
+            for attribute in ("data-srcset", "data-lazy-srcset", "srcset"):
+                image_url = self._first_srcset_url(image.get(attribute))
                 if image_url:
                     return image_url
 
         source = card.select_one("source[srcset]")
         if source:
-            candidate = source.get("srcset", "").split(",", 1)[0].strip().split()[0]
-            return self._absolute_http_url(candidate)
+            return self._first_srcset_url(source.get("srcset"))
         return ""
+
+    def _first_srcset_url(self, srcset):
+        if not srcset:
+            return ""
+        candidate = srcset.split(",", 1)[0].strip().split()
+        return self._absolute_http_url(candidate[0]) if candidate else ""
 
     def _absolute_http_url(self, value):
         if not value:
