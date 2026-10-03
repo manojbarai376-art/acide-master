@@ -73,24 +73,22 @@
 <body>
     <h1>ACID Master Anime Hub</h1>
     <div class="grid">
-            {% if items %}
-                {% for item in items %}
-                <div class="card">
-                    <!-- यहाँ image या poster दोनों में से जो डेटाबेस में हो, वह चेक कर लें -->
-                    <img src="{{ item.image or item.poster }}" alt="{{ item.title or item.name }}">
-                    <div class="card-content">
-                        <!-- एनिमी का नाम दिखाने के लिए title या name -->
-                        <div class="card-title">{{ item.title or item.name }}</div>
-                        <a href="/anime/{{ item.url or item.link }}" class="watch-btn">▶ Watch Live</a>
-                    </div>
+        {% if items and items.anime_list %}
+            {% for item in items.anime_list %}
+            <div class="card">
+                <img src="{{ item.image or item.poster }}" alt="{{ item.title or item.name }}">
+                <div class="card-content">
+                    <div class="card-title">{{ item.title or item.name }}</div>
+                    <a href="/anime/{{ item.url or item.link }}" class="watch-btn">▶ Watch Live</a>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="no-data">
-                    <p>बोट अभी डेटा फेच कर रहा है भाई, थोड़ा इंतज़ार कर...</p>
-                </div>
-            {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
             <div class="no-data">
+                <p>बोट अभी डेटा फेच कर रहा है भाई, थोड़ा इंतज़ार कर...</p>
+            </div>
+        {% endif %}
+    </div>
                 <p>बोट अभी डेटा फेच कर रहा है भाई, थोड़ा इंतज़ार कर...</p>
             </div>
     </div>
