@@ -12,6 +12,7 @@ from database.db_manager import DBManager
 from scraper.base_scraper import BaseScraper
 from scraper.anime_shield import AnimeShield
 from scraper.ai_healer import AIHealer
+from scraper.parser import AnimeParser
 
 # Flask ऐप ताकि Render इसे हमेशा ऑनलाइन समझे
 app = Flask(__name__)
@@ -54,7 +55,8 @@ def background_worker():
                 print(f"✅ Connection successful! Page HTML fetched.")
                 soup = scraper.parse_content(html)
                 if soup:
-                    items = scraper.extract_items(soup)
+                    parser = AnimeParser()
+                    items = parser.parse_anime_list(soup)
                     if items:
                         DBManager.save_data(items)
                         print(f"✅ {len(items)} items saved to database successfully!")
