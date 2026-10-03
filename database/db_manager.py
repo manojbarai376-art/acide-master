@@ -152,7 +152,15 @@ class DBManager:
             with open(DB_PATH, "r", encoding="utf-8") as f:
                 return {"anime_list": DBManager._normalize_data(json.load(f))}
         except Exception as e:
-            print(f"Error loading database: {e}")
+            print(f"⚠️️ Error loading database: {e}. Asking Local AI to heal...")
+            try:
+                with open(DB_PATH, "r", encoding="utf-8") as f:
+                    raw_content = f.read()
+                healed = DBManager._ask_local_ai_to_fix_json(raw_content)
+                if healed:
+                    return {"anime_list": DBManager._normalize_data(healed)}
+            except:
+                pass
             return {"anime_list": []}
 
     @staticmethod
@@ -211,3 +219,21 @@ class DBManager:
             raise
 
 print("Database Manager script ready!")
+@staticmethod
+    def _ask_local_ai_to_fix_json(broken_data):
+        """अगर JSON डेटा खराब या करप्ट हो जाए, तो लोकल AI से ठीक करवाएंगे"""
+        import requests
+        try:
+            payload = {
+                "model": "llama3",
+                "prompt": f"Fix this broken data format into a clean valid JSON list structure, return only JSON: {broken_data}",
+                "stream": False
+            }
+            response = requests.post("http://localhost:11434/api/generate", json=payload, timeout=5)
+            if response.status_code == 200:
+                import json
+                fixed_text = response.json().get("response", "").strip()
+                return json.loads(fixed_text)
+        except Exception as e:
+            print(f"AI DB Healer Error: {e}")
+        return []

@@ -80,6 +80,10 @@ class AnimeParser:
             title = re.sub(r"[-_]+", " ", slug).strip().title()
         return title
 
+# अगर पुराने कोड से टाइटल नहीं मिला, तो एआई खुद ढूंढ लेगा
+        if not title or title.lower() in {"watch", "watch now", "read more"}:
+            title = self._ask_local_ai_for_title(str(card))
+
     def _image_url(self, image, card):
         if image:
             for attribute in (
@@ -115,3 +119,18 @@ class AnimeParser:
         if urlsplit(absolute_url).scheme not in {"http", "https"}:
             return ""
         return absolute_url
+    def _ask_local_ai_for_title(self, card_html):
+        """लोकल एआई से परमानेंट रूप से टाइटल निकलवाने का तरीका"""
+        import requests
+        try:
+            payload = {
+                "model": "llama3",
+                "prompt": f"Extract only the anime title from this HTML snippet, nothing else: {card_html}",
+                "stream": False
+            }
+            response = requests.post("http://localhost:11434/api/generate", json=payload, timeout=5)
+            if response.status_code == 200:
+                return response.json().get("response", "").strip()
+        except Exception as e:
+            print(f"AI Fallback Error: {e}")
+        return ""

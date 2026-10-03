@@ -1,31 +1,41 @@
-import cloudscraper
+import requests
 from bs4 import BeautifulSoup
-from core.config import ANIME_SHIELD_URL
+from .ai_healer import AIHealer
 
 class BaseScraper:
-    def __init__(self, target_url=ANIME_SHIELD_URL):
+    def __init__(self, target_url):
         self.target_url = target_url
-        # cloudscraper का इंस्टेंस बनाएंगे जो क्लाउडफ्लियर को bypass कर देगा
-        self.scraper = cloudscraper.create_scraper()
+        self.healer = AIHealer()
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        }
 
-    def fetch_page(self, headers=None):
-        """टार्गेट वेबसाइट से पेज का HTML फेच करने के लिए"""
+    def fetch_page(self):
         try:
-            print(f"Target URL: {self.target_url}")
-            print("Fetching target page...")
-            response = self.scraper.get(self.target_url, headers=headers, timeout=20)
+            response = requests.get(self.target_url, headers=self.headers)
             if response.status_code == 200:
                 return response.text
-            print(f"Failed to fetch page. Status code: {response.status_code}")
-            return None
+            else:
+                # अगर कोई एरर आता है, तो AI Healer को ट्रिगर करेंगे
+                self.healer.analyze_and_heal(f"HTTP Status Code: {response.status_code}")
+                return None
         except Exception as e:
-            print(f"▲ Error connecting to website: {e}")
+            self.healer.analyze_and_heal(str(e))
             return None
 
     def parse_content(self, html_content):
         """HTML को पार्स करने के लिए सूप ऑब्जेक्ट लौटाएगा"""
         if not html_content:
-            return None
-        return BeautifulSoup(html_content, 'html.parser')
-
-print("Base Scraper script ready!")
+            return []
+        
+        soup = BeautifulSoup(html_content, 'html.parser')
+        extracted_data = []
+        
+        # यहाँ हम एनिमी टाइटल्स, पोस्टर्स और लिंक्स पार्स करने का लॉजिक रखेंगे
+        # उदाहरण के लिए:
+        for item in soup.select("div.anime-card"):
+            title = item.find("h2").text.strip() if item.find("h2") else "Unknown"
+            poster = item.find("img")["src"] if item.find("img") else ""
+            extracted_data.append({"title": title, "poster": poster})
+            
+        return extracted_data
