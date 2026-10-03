@@ -1,3 +1,22 @@
-{
-    "anime_list": []
-}
+[
+    {
+        "title": "On-Air SeriesView More »",
+        "url": "/category/status/ongoing/"
+    },
+    {
+        "title": "New Anime ArrivalsView More »",
+        "url": "/category/type/anime/?type=series"
+    },
+    {
+        "title": "Just In: Cartoon SeriesView More »",
+        "url": "/category/type/cartoon/?type=series"
+    },
+    {
+        "title": "Latest Anime MoviesView More »",
+        "url": "/category/type/anime/?type=movies"
+    },
+    {
+        "title": "Fresh Cartoon FilmsView More »",
+        "url": "/category/type/cartoon/?type=movies"
+    }
+]
