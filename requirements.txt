@@ -5,3 +5,4 @@ flask==3.0.2
 pytest==8.1.1
 cloudscraper
 gunicorn
+psycopg2-binary==2.9.10

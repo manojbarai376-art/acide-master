@@ -1,28 +1,133 @@
 import json
 import os
+import tempfile
 from core.config import DB_PATH
 
 class DBManager:
     @staticmethod
+    def _normalize_data(data):
+        if isinstance(data, dict):
+            data = data.get("anime_list", data.get("items", []))
+        return data if isinstance(data, list) else []
+
+    @staticmethod
+    def _database_url():
+        database_url = os.environ.get("DATABASE_URL")
+        if database_url and database_url.startswith("postgres://"):
+            return database_url.replace("postgres://", "postgresql://", 1)
+        return database_url
+
+    @staticmethod
+    def _connect_postgres(database_url):
+        import psycopg2
+
+        return psycopg2.connect(database_url)
+
+    @classmethod
+    def _load_postgres_data(cls, database_url):
+        connection = cls._connect_postgres(database_url)
+        try:
+            with connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "CREATE TABLE IF NOT EXISTS anime_items ("
+                        "url TEXT PRIMARY KEY, title TEXT NOT NULL, image TEXT NOT NULL DEFAULT '')"
+                    )
+                    cursor.execute("SELECT title, url, image FROM anime_items ORDER BY title")
+                    items = [
+                        {"title": title, "url": url, "image": image}
+                        for title, url, image in cursor.fetchall()
+                    ]
+            if not items:
+                items = cls._load_json_data()["anime_list"]
+                if items:
+                    cls._save_postgres_data(database_url, items)
+            return {"anime_list": items}
+        finally:
+            connection.close()
+
+    @classmethod
+    def _save_postgres_data(cls, database_url, items):
+        connection = cls._connect_postgres(database_url)
+        try:
+            with connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "CREATE TABLE IF NOT EXISTS anime_items ("
+                        "url TEXT PRIMARY KEY, title TEXT NOT NULL, image TEXT NOT NULL DEFAULT '')"
+                    )
+                    cursor.execute("DELETE FROM anime_items")
+                    cursor.executemany(
+                        "INSERT INTO anime_items (title, url, image) VALUES (%s, %s, %s)",
+                        [(item["title"], item["url"], item.get("image", "")) for item in items],
+                    )
+        finally:
+            connection.close()
+
+    @staticmethod
     def load_data():
-        """डेटाबेस फाइल से डेटा रीड करता है"""
+        """Return anime data in a consistent wrapper from Postgres or local JSON."""
+        database_url = DBManager._database_url()
+        if database_url:
+            return DBManager._load_postgres_data(database_url)
+
+        return DBManager._load_json_data()
+
+    @staticmethod
+    def _load_json_data():
         if not os.path.exists(DB_PATH):
             return {"anime_list": []}
         try:
             with open(DB_PATH, "r", encoding="utf-8") as f:
-                return json.load(f)
+                return {"anime_list": DBManager._normalize_data(json.load(f))}
         except Exception as e:
             print(f"Error loading database: {e}")
             return {"anime_list": []}
 
     @staticmethod
     def save_data(data):
-        """नया डेटा डेटाबेस फाइल में सेव करता है"""
+        """Save a non-empty scrape result without discarding existing records."""
+        items = DBManager._normalize_data(data)
+        unique_items = []
+        seen_urls = set()
+        for item in items:
+            if not isinstance(item, dict) or not item.get("title") or not item.get("url"):
+                continue
+            if item["url"] in seen_urls:
+                continue
+            seen_urls.add(item["url"])
+            unique_items.append({
+                "title": str(item["title"]),
+                "url": str(item["url"]),
+                "image": str(item.get("image") or ""),
+            })
+
+        if not unique_items:
+            print("No valid anime items to save; keeping existing data.")
+            return False
+
         try:
-            with open(DB_PATH, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=4, ensure_ascii=False)
+            database_url = DBManager._database_url()
+            if database_url:
+                DBManager._save_postgres_data(database_url, unique_items)
+            else:
+                os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+                temporary_path = None
+                try:
+                    with tempfile.NamedTemporaryFile(
+                        "w", encoding="utf-8", dir=os.path.dirname(DB_PATH),
+                        delete=False, suffix=".tmp"
+                    ) as f:
+                        temporary_path = f.name
+                        json.dump({"anime_list": unique_items}, f, indent=4, ensure_ascii=False)
+                    os.replace(temporary_path, DB_PATH)
+                finally:
+                    if temporary_path and os.path.exists(temporary_path):
+                        os.remove(temporary_path)
             print("Database updated successfully!")
+            return True
         except Exception as e:
             print(f"Error saving database: {e}")
+            raise
 
 print("Database Manager script ready!")

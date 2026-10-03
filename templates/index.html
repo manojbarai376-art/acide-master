@@ -73,8 +73,8 @@
 <body>
     <h1>ACID Master Anime Hub</h1>
     <div class="grid">
-        {% if items and items.anime_list %}
-            {% for item in items.anime_list %}
+        {% if items %}
+            {% for item in items %}
             <div class="card">
                 <img src="{{ item.image or item.poster }}" alt="{{ item.title or item.name }}">
                 <div class="card-content">
@@ -88,9 +88,6 @@
                 <p>बोट अभी डेटा फेच कर रहा है भाई, थोड़ा इंतज़ार कर...</p>
             </div>
         {% endif %}
-    </div>
-                <p>बोट अभी डेटा फेच कर रहा है भाई, थोड़ा इंतज़ार कर...</p>
-            </div>
     </div>
 </body>
 </html>
