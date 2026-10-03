@@ -220,6 +220,7 @@ class DBManager:
 
 print("Database Manager script ready!")
 @staticmethod
+
     def _ask_local_ai_to_fix_json(broken_data):
         """अगर JSON डेटा खराब या करप्ट हो जाए, तो लोकल AI से ठीक करवाएंगे"""
         import requests
