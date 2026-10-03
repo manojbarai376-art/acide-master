@@ -73,13 +73,15 @@
 <body>
     <h1>ACID Master Anime Hub</h1>
     <div class="grid">
-       {% if items %}
+            {% if items %}
                 {% for item in items %}
                 <div class="card">
-                    <img src="{{ item.image }}" alt="{{ item.title }}" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
+                    <!-- यहाँ image या poster दोनों में से जो डेटाबेस में हो, वह चेक कर लें -->
+                    <img src="{{ item.image or item.poster }}" alt="{{ item.title or item.name }}">
                     <div class="card-content">
-                        <div class="card-title">{{ item.title }}</div>
-                        <a href="/anime/{{ item.url }}" class="watch-btn">▶ Watch Live</a>
+                        <!-- एनिमी का नाम दिखाने के लिए title या name -->
+                        <div class="card-title">{{ item.title or item.name }}</div>
+                        <a href="/anime/{{ item.url or item.link }}" class="watch-btn">▶ Watch Live</a>
                     </div>
                 </div>
                 {% endfor %}
