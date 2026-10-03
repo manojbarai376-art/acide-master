@@ -55,6 +55,15 @@ class DBManager:
         return normalized
 
     @staticmethod
+    def _preserve_media_fields(items, existing_items):
+        existing_by_url = {item["url"]: item for item in existing_items if item.get("url")}
+        for item in items:
+            existing = existing_by_url.get(item["url"], {})
+            for field in ("image", "video_url"):
+                if not item.get(field) and existing.get(field):
+                    item[field] = existing[field]
+
+    @staticmethod
     def _database_url():
         database_url = os.environ.get("DATABASE_URL")
         if database_url and database_url.startswith("postgres://"):
@@ -75,12 +84,17 @@ class DBManager:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         "CREATE TABLE IF NOT EXISTS anime_items ("
-                        "url TEXT PRIMARY KEY, title TEXT NOT NULL, image TEXT NOT NULL DEFAULT '')"
+                        "url TEXT PRIMARY KEY, title TEXT NOT NULL, image TEXT NOT NULL DEFAULT '', "
+                        "video_url TEXT NOT NULL DEFAULT '')"
                     )
-                    cursor.execute("SELECT title, url, image FROM anime_items ORDER BY title")
+                    cursor.execute(
+                        "ALTER TABLE anime_items ADD COLUMN IF NOT EXISTS "
+                        "video_url TEXT NOT NULL DEFAULT ''"
+                    )
+                    cursor.execute("SELECT title, url, image, video_url FROM anime_items ORDER BY title")
                     items = cls._normalize_data([
-                        {"title": title, "url": url, "image": image}
-                        for title, url, image in cursor.fetchall()
+                        {"title": title, "url": url, "image": image, "video_url": video_url}
+                        for title, url, image, video_url in cursor.fetchall()
                     ])
             if not items:
                 items = cls._load_json_data()["anime_list"]
@@ -98,12 +112,21 @@ class DBManager:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         "CREATE TABLE IF NOT EXISTS anime_items ("
-                        "url TEXT PRIMARY KEY, title TEXT NOT NULL, image TEXT NOT NULL DEFAULT '')"
+                        "url TEXT PRIMARY KEY, title TEXT NOT NULL, image TEXT NOT NULL DEFAULT '', "
+                        "video_url TEXT NOT NULL DEFAULT '')"
+                    )
+                    cursor.execute(
+                        "ALTER TABLE anime_items ADD COLUMN IF NOT EXISTS "
+                        "video_url TEXT NOT NULL DEFAULT ''"
                     )
                     cursor.execute("DELETE FROM anime_items")
                     cursor.executemany(
-                        "INSERT INTO anime_items (title, url, image) VALUES (%s, %s, %s)",
-                        [(item["title"], item["url"], item.get("image", "")) for item in items],
+                        "INSERT INTO anime_items (title, url, image, video_url) "
+                        "VALUES (%s, %s, %s, %s)",
+                        [
+                            (item["title"], item["url"], item.get("image", ""), item.get("video_url", ""))
+                            for item in items
+                        ],
                     )
         finally:
             connection.close()
@@ -155,6 +178,12 @@ class DBManager:
 
         try:
             database_url = DBManager._database_url()
+            if database_url:
+                existing_items = DBManager._load_postgres_data(database_url)["anime_list"]
+            else:
+                existing_items = DBManager._load_json_data()["anime_list"]
+            DBManager._preserve_media_fields(unique_items, existing_items)
+
             if database_url:
                 DBManager._save_postgres_data(database_url, unique_items)
             else:

@@ -117,5 +117,8 @@ def test_watch_page_uses_stored_stream_in_local_player(tmp_path, monkeypatch):
 
     assert response.status_code == 200
     assert b'<video id="animeVideo" src="https://cdn.example/anime.mp4"' in response.data
+    assert b"controls playsinline" in response.data
+    assert b"max-width: 1440px" in response.data
+    assert b"https://animesalt.cx/poster.jpg" in response.data
     assert b"Playback is not available yet" not in response.data
     assert b"target=\"_blank\"" not in response.data

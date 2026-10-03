@@ -5,11 +5,11 @@
     <title>{{ anime.title }} - ACID Master</title>
     <style>
         body { background-color: #0f0f0f; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
+        .container { width: 100%; max-width: 1440px; margin: auto; }
         
         /* वीडियो प्लेयर डिज़ाइन */
-        .video-container { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 4px 20px rgba(0,0,0,0.7); user-select: none; }
-        .video-container video { width: 100%; height: 100%; display: block; }
+        .video-container { position: relative; width: 100%; background: #000; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 4px 20px rgba(0,0,0,0.7); user-select: none; }
+        .video-container video { width: 100%; height: 100%; display: block; object-fit: contain; }
         
         /* डबल टैप एनिमेशन इफेक्ट */
         .tap-effect { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; padding: 10px 15px; border-radius: 50px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 10; }
@@ -34,8 +34,8 @@
         .menu-popup button:hover { background: #e50914; }
 
         .anime-info { margin-top: 20px; }
-        .anime-poster { display: block; width: min(100%, 300px); max-height: 430px; object-fit: cover; background: #292929; }
-        .poster-placeholder { width: min(100%, 300px); min-height: 220px; display: grid; place-items: center; background: #292929; color: #aaa; }
+        .anime-poster { display: block; width: min(100%, 340px); max-height: 480px; object-fit: contain; background: #292929; }
+        .poster-placeholder { width: min(100%, 340px); min-height: 220px; display: grid; place-items: center; background: #292929; color: #aaa; }
         .source-link { display: inline-block; margin-top: 12px; padding: 10px 14px; background: #e50914; border-radius: 4px; color: white; text-decoration: none; }
         .playback-unavailable { width: 100%; min-height: 220px; display: grid; place-items: center; padding: 20px; box-sizing: border-box; background: #1a1a1a; color: #ccc; text-align: center; }
         .seasons, .episodes { margin-top: 15px; }
@@ -55,7 +55,7 @@
             <div class="tap-effect tap-left" id="tapLeftText">◀ -10s</div>
             <div class="tap-effect tap-right" id="tapRightText">+10s ▶</div>
             
-            <video id="animeVideo" src="{{ anime.video_url }}" preload="metadata"></video>
+            <video id="animeVideo" src="{{ anime.video_url }}" controls playsinline preload="metadata"></video>
 
             <!-- सेटिंग्स पॉपअप मेनू -->
             <div class="menu-popup" id="settingsMenu">
