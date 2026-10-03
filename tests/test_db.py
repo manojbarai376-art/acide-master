@@ -15,7 +15,10 @@ def test_local_json_round_trip(tmp_path, monkeypatch):
     items = [{"title": "Example", "url": "https://example.com/anime", "image": "poster.jpg"}]
 
     assert DBManager.save_data(items) is True
-    assert DBManager.load_data() == {"anime_list": items}
+    assert DBManager.load_data() == {"anime_list": [{
+        "title": "Example", "url": "https://example.com/anime",
+        "image": "https://example.com/poster.jpg",
+    }]}
 
 def test_empty_scrape_does_not_replace_existing_data(tmp_path, monkeypatch):
     from database import db_manager
@@ -26,7 +29,10 @@ def test_empty_scrape_does_not_replace_existing_data(tmp_path, monkeypatch):
     DBManager.save_data(items)
 
     assert DBManager.save_data([]) is False
-    assert DBManager.load_data() == {"anime_list": items}
+    assert DBManager.load_data() == {"anime_list": [{
+        "title": "Example", "url": "https://example.com/anime",
+        "image": "https://example.com/poster.jpg",
+    }]}
 
 def test_empty_postgres_is_seeded_from_local_json(tmp_path, monkeypatch):
     from unittest.mock import MagicMock
@@ -43,8 +49,12 @@ def test_empty_postgres_is_seeded_from_local_json(tmp_path, monkeypatch):
     save_to_postgres = MagicMock()
     monkeypatch.setattr(DBManager, "_save_postgres_data", staticmethod(save_to_postgres))
 
-    assert DBManager._load_postgres_data("postgresql://example") == {"anime_list": items}
-    save_to_postgres.assert_called_once_with("postgresql://example", items)
+    normalized_items = [{
+        "title": "Example", "url": "https://example.com/anime",
+        "image": "https://example.com/poster.jpg",
+    }]
+    assert DBManager._load_postgres_data("postgresql://example") == {"anime_list": normalized_items}
+    save_to_postgres.assert_called_once_with("postgresql://example", normalized_items)
 
 if __name__ == "__main__":
     test_database_load()

@@ -36,6 +36,13 @@
             height: 180px;
             object-fit: cover;
         }
+        .poster-placeholder {
+            height: 180px;
+            display: grid;
+            place-items: center;
+            color: #aaa;
+            background: #292929;
+        }
         .card-content {
             padding: 10px;
             display: flex;
@@ -76,16 +83,21 @@
         {% if items %}
             {% for item in items %}
             <div class="card">
-                <img src="{{ item.image or item.poster }}" alt="{{ item.title or item.name }}">
+                {% if item.image or item.poster %}
+                <img src="{{ item.image or item.poster }}" alt="{{ item.title or item.name }} poster" loading="lazy" onerror="this.hidden=true; this.nextElementSibling.hidden=false">
+                <div class="poster-placeholder" hidden>Poster unavailable</div>
+                {% else %}
+                <div class="poster-placeholder">Poster unavailable</div>
+                {% endif %}
                 <div class="card-content">
                     <div class="card-title">{{ item.title or item.name }}</div>
-                    <a href="/anime/{{ item.url or item.link }}" class="watch-btn">▶ Watch Live</a>
+                    <a href="{{ url_for('anime_detail', url=item.url or item.link) }}" class="watch-btn">Watch details</a>
                 </div>
             </div>
             {% endfor %}
         {% else %}
             <div class="no-data">
-                <p>बोट अभी डेटा फेच कर रहा है भाई, थोड़ा इंतज़ार कर...</p>
+                <p>No anime are available yet. Please check back shortly.</p>
             </div>
         {% endif %}
     </div>

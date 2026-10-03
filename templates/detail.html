@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Advanced Anime Player - ACID Master</title>
+    <title>{{ anime.title }} - ACID Master</title>
     <style>
         body { background-color: #0f0f0f; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; }
@@ -34,6 +34,9 @@
         .menu-popup button:hover { background: #e50914; }
 
         .anime-info { margin-top: 20px; }
+        .anime-poster { display: block; width: min(100%, 300px); max-height: 430px; object-fit: cover; background: #292929; }
+        .poster-placeholder { width: min(100%, 300px); min-height: 220px; display: grid; place-items: center; background: #292929; color: #aaa; }
+        .source-link { display: inline-block; margin-top: 12px; padding: 10px 14px; background: #e50914; border-radius: 4px; color: white; text-decoration: none; }
         .seasons, .episodes { margin-top: 15px; }
         .episode-btn { background: #222; color: white; padding: 8px 14px; border: 1px solid #444; border-radius: 6px; cursor: pointer; margin-right: 8px; transition: 0.2s; }
         .episode-btn:hover { background: #e50914; border-color: #e50914; }
@@ -46,6 +49,7 @@
 <body>
     <div class="container">
         <!-- वीडियो प्लेयर -->
+        {% if anime.video_url %}
         <div class="video-container" id="videoContainer">
             <div class="tap-effect tap-left" id="tapLeftText">◀ -10s</div>
             <div class="tap-effect tap-right" id="tapRightText">+10s ▶</div>
@@ -54,10 +58,10 @@
 
             <!-- सेटिंग्स पॉपअप मेनू -->
             <div class="menu-popup" id="settingsMenu">
-                <button onclick="setSpeed(0.5)">0.5x स्पीड</button>
-                <button onclick="setSpeed(1.0)">1.0x नॉर्मल</button>
-                <button onclick="setSpeed(1.5)">1.5x स्पीड</button>
-                <button onclick="setSpeed(2.0)">2.0x फ़ास्ट</button>
+                <button onclick="setSpeed(0.5)">0.5x Speed</button>
+                <button onclick="setSpeed(1.0)">1.0x Normal</button>
+                <button onclick="setSpeed(1.5)">1.5x Speed</button>
+                <button onclick="setSpeed(2.0)">2.0x Fast</button>
             </div>
 
             <div class="video-controls">
@@ -66,47 +70,35 @@
                 </div>
                 <div class="control-btns">
                     <div class="left-controls">
-                        <button class="ctrl-btn" id="playPauseBtn">▶ प्ले</button>
+                        <button class="ctrl-btn" id="playPauseBtn">▶ Play</button>
                         <button class="ctrl-btn" id="skipBackward">⏪ 10s</button>
                         <button class="ctrl-btn" id="skipForward">10s ⏩</button>
                         <span id="timeDisplay" style="font-size: 13px;">0:00 / 0:00</span>
                     </div>
                     <div class="right-controls">
-                        <button class="ctrl-btn" id="speedBtn">⚙ स्पीड</button>
-                        <button class="ctrl-btn" id="fullscreenBtn">⛶ फुलस्क्रीन</button>
+                        <button class="ctrl-btn" id="speedBtn">⚙ Speed</button>
+                        <button class="ctrl-btn" id="fullscreenBtn">⛶ Fullscreen</button>
                     </div>
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <div class="anime-info">
-            <h2>एनिमी विवरण और एपिसोड्स</h2>
-            <p>यहाँ एनिमी की पूरी जानकारी और कहानी दिखाई देगी।</p>
-            
-            <div class="seasons">
-                <h3>सीजन चुनें:</h3>
-                <button class="episode-btn">Season 1</button>
-                <button class="episode-btn">Season 2</button>
-            </div>
-
-            <div class="episodes">
-                <h3>एपिसोड्स:</h3>
-                <button class="episode-btn">Ep 1</button>
-                <button class="episode-btn">Ep 2</button>
-                <button class="episode-btn">Ep 3</button>
-            </div>
-        </div>
-
-        <div class="related-section">
-            <h3>मिलते-जुलते एनिमी (Recommended):</h3>
-            <div class="related-grid">
-                <div class="card">एनिमी 1</div>
-                <div class="card">एनिमी 2</div>
-                <div class="card">एनिमी 3</div>
-            </div>
+            {% if anime.image %}
+            <img class="anime-poster" src="{{ anime.image }}" alt="{{ anime.title }} poster" onerror="this.hidden=true; this.nextElementSibling.hidden=false">
+            <div class="poster-placeholder" hidden>Poster unavailable</div>
+            {% else %}
+            <div class="poster-placeholder">Poster unavailable</div>
+            {% endif %}
+            <h1>{{ anime.title }}</h1>
+            <p>Episode playback and current availability are provided by the source page.</p>
+            <a class="source-link" href="{{ anime.url }}" target="_blank" rel="noopener noreferrer">Open source page</a>
+            <p><a href="{{ url_for('index') }}">Back to anime list</a></p>
         </div>
     </div>
 
+    {% if anime.video_url %}
     <script>
         const video = document.getElementById('animeVideo');
         const playPauseBtn = document.getElementById('playPauseBtn');
@@ -126,10 +118,10 @@
         playPauseBtn.addEventListener('click', () => {
             if (video.paused) {
                 video.play();
-                playPauseBtn.textContent = '⏸ पाउस';
+                playPauseBtn.textContent = '⏸ Pause';
             } else {
                 video.pause();
-                playPauseBtn.textContent = '▶ प्ले';
+                playPauseBtn.textContent = '▶ Play';
             }
         });
 
@@ -190,7 +182,7 @@
         function setSpeed(rate) {
             video.playbackRate = rate;
             settingsMenu.style.display = 'none';
-            speedBtn.textContent = `⚙ ${rate}x`;
+            speedBtn.textContent = `⚙ Speed ${rate}x`;
         }
 
         // फुलस्क्रीन
@@ -202,5 +194,6 @@
             }
         });
     </script>
+    {% endif %}
 </body>
 </html>

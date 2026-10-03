@@ -1,44 +1,111 @@
+import re
+from urllib.parse import unquote, urljoin, urlsplit
+
+from core.config import ANIME_SHIELD_URL
+
+
 class AnimeParser:
-    def __init__(self):
-        print("Anime Parser initialized: Ready to extract content!")
+    def __init__(self, base_url=ANIME_SHIELD_URL):
+        self.base_url = base_url
 
     def parse_anime_list(self, soup):
-        anime_items = []
         if not soup:
-            return anime_items
+            return []
 
-        try:
-            # वेबसाइट के कार्ड्स या लिंक्स को टारगेट करते हैं
-            cards = soup.find_all(['a', 'div'], class_=True)
-            for card in cards:
-                title_elem = card.find("h3") or card.find("h4") or card.find("span")
-                link_elem = card if card.name == 'a' else card.find("a", href=True)
-                img_elem = card.find("img")
+        items = []
+        seen_urls = set()
+        for link in soup.find_all("a", href=True):
+            anime_url = self._absolute_http_url(link.get("href"))
+            if not anime_url or anime_url in seen_urls:
+                continue
 
-                if title_elem and link_elem:
-                    title = title_elem.get_text(strip=True)
-                    href = link_elem.get('href', '#')
-                    img_url = img_elem.get('src') or img_elem.get('data-src') if img_elem else ""
+            card = self._find_card(link)
+            image = card.find("img")
+            has_heading = card.select_one(
+                "h1, h2, h3, h4, .film-name, .anime-title, .film-title"
+            )
+            has_title = any(link.get(key) for key in ("title", "data-jname", "aria-label"))
+            is_series_url = "/series/" in urlsplit(anime_url).path.lower()
+            if not image and not has_heading and not has_title and not is_series_url:
+                continue
 
-                    if title and len(title) > 2 and not href.startswith('#'):
-                        anime_items.append({
-                            "title": title, 
-                            "url": href,
-                            "image": img_url
-                        })
+            title = self._title_for(link, card, image, anime_url)
+            if not title:
+                continue
 
-            # डुप्लीकेट डेटा हटाने के लिए
-            seen = set()
-            unique_items = []
-            for item in anime_items:
-                if item['url'] not in seen:
-                    seen.add(item['url'])
-                    unique_items.append(item)
+            items.append({
+                "title": title,
+                "url": anime_url,
+                "image": self._image_url(image, card),
+            })
+            seen_urls.add(anime_url)
 
-            print(f"✅ Successfully parsed {len(unique_items)} anime items.")
-            return unique_items
-        except Exception as e:
-            print(f"❌ Error during parsing: {e}")
-            return anime_items
+        print(f"Parsed {len(items)} anime items.")
+        return items
 
-print("Parser script ready!")
+    def _find_card(self, link):
+        for parent in [link, *list(link.parents)[:5]]:
+            if parent is link and parent.find("img"):
+                return parent
+            classes = set(parent.get("class", []))
+            card_class = bool(
+                classes.intersection({"card", "anime-item", "film-item", "flw-item", "bs", "poster"})
+                or any(name.startswith("anime-card") for name in classes)
+            )
+            if parent.name in {"article", "li"} or (card_class and parent.find("img")):
+                return parent
+        return link
+
+    def _title_for(self, link, card, image, anime_url):
+        title = link.get("title") or link.get("data-jname") or link.get("aria-label")
+        if not title:
+            heading = card.select_one(
+                "h1, h2, h3, h4, .film-name, .anime-title, .film-title"
+            )
+            if heading:
+                title = heading.get_text(" ", strip=True)
+        if not title and image:
+            title = image.get("alt")
+        if not title:
+            title = link.get_text(" ", strip=True)
+
+        title = re.sub(r"\s+", " ", title or "").strip()
+        if (
+            re.fullmatch(r"(?:season|episode|ep)\s*\d+", title, re.IGNORECASE)
+            or re.search(r"[\u0900-\u097F]", title)
+        ):
+            title = ""
+        if not title or title.lower() in {"watch", "watch now", "read more", "play"}:
+            slug = unquote(urlsplit(anime_url).path.rstrip("/").split("/")[-1])
+            title = re.sub(r"[-_]+", " ", slug).strip().title()
+        return title
+
+    def _image_url(self, image, card):
+        if image:
+            for attribute in ("data-src", "data-lazy-src", "data-original", "data-image", "src"):
+                image_url = self._absolute_http_url(image.get(attribute))
+                if image_url:
+                    return image_url
+            srcset = image.get("srcset")
+            if srcset:
+                candidate = srcset.split(",", 1)[0].strip().split()[0]
+                image_url = self._absolute_http_url(candidate)
+                if image_url:
+                    return image_url
+
+        source = card.select_one("source[srcset]")
+        if source:
+            candidate = source.get("srcset", "").split(",", 1)[0].strip().split()[0]
+            return self._absolute_http_url(candidate)
+        return ""
+
+    def _absolute_http_url(self, value):
+        if not value:
+            return ""
+        value = value.strip()
+        if value.startswith("data:"):
+            return ""
+        absolute_url = urljoin(self.base_url, value)
+        if urlsplit(absolute_url).scheme not in {"http", "https"}:
+            return ""
+        return absolute_url

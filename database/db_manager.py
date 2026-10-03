@@ -1,6 +1,10 @@
 import json
 import os
+import re
 import tempfile
+from urllib.parse import unquote, urljoin, urlsplit
+
+from core.config import ANIME_SHIELD_URL
 from core.config import DB_PATH
 
 class DBManager:
@@ -8,7 +12,40 @@ class DBManager:
     def _normalize_data(data):
         if isinstance(data, dict):
             data = data.get("anime_list", data.get("items", []))
-        return data if isinstance(data, list) else []
+        if not isinstance(data, list):
+            return []
+
+        normalized = []
+        seen_urls = set()
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            anime_url = str(item.get("url") or item.get("link") or "").strip()
+            if not anime_url:
+                continue
+            anime_url = urljoin(ANIME_SHIELD_URL, anime_url)
+            if urlsplit(anime_url).scheme not in {"http", "https"} or anime_url in seen_urls:
+                continue
+
+            title = str(item.get("title") or item.get("name") or "").strip()
+            if (
+                not title
+                or re.fullmatch(r"(?:season|episode|ep)\s*\d+", title, re.IGNORECASE)
+                or re.search(r"[\u0900-\u097F]", title)
+            ):
+                slug = unquote(urlsplit(anime_url).path.rstrip("/").split("/")[-1])
+                title = re.sub(r"[-_]+", " ", slug).strip().title()
+            if not title:
+                continue
+
+            image = str(item.get("image") or item.get("poster") or "").strip()
+            image = urljoin(anime_url, image) if image else ""
+            if image and urlsplit(image).scheme not in {"http", "https"}:
+                image = ""
+
+            normalized.append({"title": title, "url": anime_url, "image": image})
+            seen_urls.add(anime_url)
+        return normalized
 
     @staticmethod
     def _database_url():
@@ -34,10 +71,10 @@ class DBManager:
                         "url TEXT PRIMARY KEY, title TEXT NOT NULL, image TEXT NOT NULL DEFAULT '')"
                     )
                     cursor.execute("SELECT title, url, image FROM anime_items ORDER BY title")
-                    items = [
+                    items = cls._normalize_data([
                         {"title": title, "url": url, "image": image}
                         for title, url, image in cursor.fetchall()
-                    ]
+                    ])
             if not items:
                 items = cls._load_json_data()["anime_list"]
                 if items:
