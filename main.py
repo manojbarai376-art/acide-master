@@ -64,7 +64,7 @@ def anime_detail(anime_url=None):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-   def _ask_local_ai_to_fix_main_data(broken_data):
+   def_ask_local_ai_to_fix_main_data(broken_data):
     import requests
     try:
         payload = {
