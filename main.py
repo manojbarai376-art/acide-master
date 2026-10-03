@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template
 
+from core.config import APP_NAME, VERSION
 from database.db_manager import DBManager
 
 app = Flask(__name__)
