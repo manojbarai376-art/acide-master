@@ -218,23 +218,20 @@ class DBManager:
             print(f"Error saving database: {e}")
             raise
 
-print("Database Manager script ready!")
-@staticmethod
-
-    def _ask_local_ai_to_fix_json(broken_data):
-        """अगर JSON डेटा खराब या करप्ट हो जाए, तो लोकल AI से ठीक करवाएंगे"""
-        import requests
-        try:
-            payload = {
-                "model": "llama3",
-                "prompt": f"Fix this broken data format into a clean valid JSON list structure, return only JSON: {broken_data}",
-                "stream": False
-            }
-            response = requests.post("http://localhost:11434/api/generate", json=payload, timeout=5)
-            if response.status_code == 200:
-                import json
-                fixed_text = response.json().get("response", "").strip()
-                return json.loads(fixed_text)
-        except Exception as e:
-            print(f"AI DB Healer Error: {e}")
-        return []
+        @staticmethod
+        def _ask_local_ai_to_fix_json(broken_data):
+            import requests
+            try:
+                payload = {
+                    "model": "llama3",
+                    "prompt": f"Fix this broken data format into a clean valid JSON list structure, return only JSON: {broken_data}",
+                    "stream": False
+                }
+                response = requests.post("http://localhost:11434/api/generate", json=payload, timeout=5)
+                if response.status_code == 200:
+                    import json
+                    fixed_text = response.json().get("response", "").strip()
+                    return json.loads(fixed_text)
+            except Exception as e:
+                print(f"AI DB Healer Error: {e}")
+            return []
