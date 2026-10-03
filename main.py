@@ -85,11 +85,27 @@ def background_worker():
         return render_template('detail.html', anime_url=anime_url)
 
 if __name__ == "__main__":
-    # बैकग्राउंड वर्कर को अलग धागे (Thread) में शुरू करना
+    # 1. ऐप स्टार्ट होने से पहले एक बार तुरंत डेटा फेच करके सेव कर लेते हैं ताकि फाइल खाली न रहे!
+    print("🚀 Initializing startup scrape...")
+    try:
+        startup_scraper = BaseScraper(ANIME_SHIELD_URL)
+        startup_html = startup_scraper.fetch_page()
+        if startup_html:
+            startup_soup = startup_scraper.parse_content(startup_html)
+            if startup_soup:
+                parser = AnimeParser()
+                initial_items = parser.parse_anime_list(startup_soup)
+                if initial_items:
+                    DBManager.save_data({"anime_list": initial_items})
+                    print(f"✅ Startup success! Saved {len(initial_items)} items.")
+    except Exception as e:
+        print(f"⚠️ Startup scrape error: {e}")
+
+    # 2. बैकग्राउंड वर्कर को अलग थ्रेड में शुरू करना
     t = Thread(target=background_worker)
     t.daemon = True
     t.start()
-    
-    # Render के लिए पोर्ट सेट करना
+
+    # 3. Render के लिए पोर्ट सेट करना
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
