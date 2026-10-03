@@ -8,16 +8,26 @@ class AnimeParser:
             return anime_items
 
         try:
-            # animesalt.cx के हिसाब से सभी लिंक्स और कार्ड्स को टारगेट करते हैं
-            links = soup.find_all("a", href=True)
-            for link in links:
-                title = link.get_text(strip=True)
-                href = link['href']
-                # अगर सही नाम और लिंक मिल रहा है तो लिस्ट में जोड़ लेंगे
-                if title and len(title) > 2 and not href.startswith('#') and not href.startswith('javascript'):
-                    anime_items.append({"title": title, "url": href})
+            # वेबसाइट के कार्ड्स या लिंक्स को टारगेट करते हैं
+            cards = soup.find_all(['a', 'div'], class_=True)
+            for card in cards:
+                title_elem = card.find("h3") or card.find("h4") or card.find("span")
+                link_elem = card if card.name == 'a' else card.find("a", href=True)
+                img_elem = card.find("img")
 
-            # डुप्लीकेट (Duplicate) डेटा हटाने के लिए
+                if title_elem and link_elem:
+                    title = title_elem.get_text(strip=True)
+                    href = link_elem.get('href', '#')
+                    img_url = img_elem.get('src') or img_elem.get('data-src') if img_elem else ""
+
+                    if title and len(title) > 2 and not href.startswith('#'):
+                        anime_items.append({
+                            "title": title, 
+                            "url": href,
+                            "image": img_url
+                        })
+
+            # डुप्लीकेट डेटा हटाने के लिए
             seen = set()
             unique_items = []
             for item in anime_items:

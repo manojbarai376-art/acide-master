@@ -71,6 +71,11 @@ def background_worker():
         print(f"🔄 Application cycle completed. Restarting in 60 seconds...")
         print(f"========================================")
         time.sleep(60)
+    @app.route('/anime/<path:anime_url>')
+    def anime_detail(anime_url):
+    # यहाँ हम डेटाबेस से उस एनिमी की जानकारी निकालेंगे
+    # और उसकी डिटेल्स detail.html पर भेजेंगे
+        return render_template('detail.html', anime_url=anime_url)
 
 if __name__ == "__main__":
     # बैकग्राउंड वर्कर को अलग धागे (Thread) में शुरू करना

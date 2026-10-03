@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Anime Player - ACID Master</title>
+    <style>
+        body { background-color: #0f0f0f; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        
+        /* वीडियो प्लेयर डिज़ाइन */
+        .video-container { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; box-shadow: 0 4px 20px rgba(0,0,0,0.7); user-select: none; }
+        .video-container video { width: 100%; height: 100%; display: block; }
+        
+        /* डबल टैप एनिमेशन इफेक्ट */
+        .tap-effect { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.6); color: white; padding: 10px 15px; border-radius: 50px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 10; }
+        .tap-left { left: 20px; }
+        .tap-right { right: 20px; }
+
+        /* कंट్రోल्स बार */
+        .video-controls { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); padding: 15px; display: flex; flex-direction: column; gap: 8px; opacity: 0; transition: opacity 0.3s; z-index: 5; }
+        .video-container:hover .video-controls { opacity: 1; }
+        
+        .progress-bar { width: 100%; height: 5px; background: rgba(255,255,255,0.3); border-radius: 3px; cursor: pointer; position: relative; }
+        .progress { width: 0%; height: 100%; background: #e50914; border-radius: 3px; }
+        
+        .control-btns { display: flex; justify-content: space-between; align-items: center; }
+        .left-controls, .right-controls { display: flex; gap: 12px; align-items: center; }
+        .ctrl-btn { background: none; border: none; color: white; font-size: 15px; cursor: pointer; padding: 5px 8px; border-radius: 4px; transition: background 0.2s; }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.2); }
+
+        /* मेनू ड्रॉपडाउन (क्वालिटी और स्पीड के लिए) */
+        .menu-popup { position: absolute; bottom: 60px; right: 20px; background: rgba(20,20,20,0.95); border: 1px solid #444; border-radius: 8px; display: none; flex-direction: column; padding: 8px 0; z-index: 20; min-width: 120px; }
+        .menu-popup button { background: none; border: none; color: white; padding: 8px 15px; text-align: left; cursor: pointer; font-size: 14px; }
+        .menu-popup button:hover { background: #e50914; }
+
+        .anime-info { margin-top: 20px; }
+        .seasons, .episodes { margin-top: 15px; }
+        .episode-btn { background: #222; color: white; padding: 8px 14px; border: 1px solid #444; border-radius: 6px; cursor: pointer; margin-right: 8px; transition: 0.2s; }
+        .episode-btn:hover { background: #e50914; border-color: #e50914; }
+        
+        .related-section { margin-top: 30px; }
+        .related-grid { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
+        .card { background: #1a1a1a; padding: 10px; border-radius: 8px; min-width: 140px; text-align: center; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- वीडियो प्लेयर -->
+        <div class="video-container" id="videoContainer">
+            <div class="tap-effect tap-left" id="tapLeftText">◀ -10s</div>
+            <div class="tap-effect tap-right" id="tapRightText">+10s ▶</div>
+            
+            <video id="animeVideo" src=""></video>
+
+            <!-- सेटिंग्स पॉपअप मेनू -->
+            <div class="menu-popup" id="settingsMenu">
+                <button onclick="setSpeed(0.5)">0.5x स्पीड</button>
+                <button onclick="setSpeed(1.0)">1.0x नॉर्मल</button>
+                <button onclick="setSpeed(1.5)">1.5x स्पीड</button>
+                <button onclick="setSpeed(2.0)">2.0x फ़ास्ट</button>
+            </div>
+
+            <div class="video-controls">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div class="control-btns">
+                    <div class="left-controls">
+                        <button class="ctrl-btn" id="playPauseBtn">▶ प्ले</button>
+                        <button class="ctrl-btn" id="skipBackward">⏪ 10s</button>
+                        <button class="ctrl-btn" id="skipForward">10s ⏩</button>
+                        <span id="timeDisplay" style="font-size: 13px;">0:00 / 0:00</span>
+                    </div>
+                    <div class="right-controls">
+                        <button class="ctrl-btn" id="speedBtn">⚙ स्पीड</button>
+                        <button class="ctrl-btn" id="fullscreenBtn">⛶ फुलस्क्रीन</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="anime-info">
+            <h2>एनिमी विवरण और एपिसोड्स</h2>
+            <p>यहाँ एनिमी की पूरी जानकारी और कहानी दिखाई देगी।</p>
+            
+            <div class="seasons">
+                <h3>सीजन चुनें:</h3>
+                <button class="episode-btn">Season 1</button>
+                <button class="episode-btn">Season 2</button>
+            </div>
+
+            <div class="episodes">
+                <h3>एपिसोड्स:</h3>
+                <button class="episode-btn">Ep 1</button>
+                <button class="episode-btn">Ep 2</button>
+                <button class="episode-btn">Ep 3</button>
+            </div>
+        </div>
+
+        <div class="related-section">
+            <h3>मिलते-जुलते एनिमी (Recommended):</h3>
+            <div class="related-grid">
+                <div class="card">एनिमी 1</div>
+                <div class="card">एनिमी 2</div>
+                <div class="card">एनिमी 3</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('animeVideo');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const progress = document.getElementById('progress');
+        const progressBar = document.getElementById('progressBar');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const skipForward = document.getElementById('skipForward');
+        const skipBackward = document.getElementById('skipBackward');
+        const videoContainer = document.getElementById('videoContainer');
+        const settingsMenu = document.getElementById('settingsMenu');
+        const speedBtn = document.getElementById('speedBtn');
+        const tapLeftText = document.getElementById('tapLeftText');
+        const tapRightText = document.getElementById('tapRightText');
+
+        // प्ले / पाउस कंट्रोल
+        playPauseBtn.addEventListener('click', () => {
+            if (video.paused) {
+                video.play();
+                playPauseBtn.textContent = '⏸ पाउस';
+            } else {
+                video.pause();
+                playPauseBtn.textContent = '▶ प्ले';
+            }
+        });
+
+        // प्रोग्रेस बार और टाइम अपडेट
+        video.addEventListener('timeupdate', () => {
+            const percent = (video.currentTime / video.duration) * 100;
+            progress.style.width = percent + '%';
+            
+            let curMin = Math.floor(video.currentTime / 60);
+            let curSec = Math.floor(video.currentTime % 60);
+            let durMin = Math.floor(video.duration / 60) || 0;
+            let durSec = Math.floor(video.duration % 60) || 0;
+            
+            if (curSec < 10) curSec = '0' + curSec;
+            if (durSec < 10) durSec = '0' + durSec;
+            
+            timeDisplay.textContent = `${curMin}:${curSec} / ${durMin}:${durSec}`;
+        });
+
+        progressBar.addEventListener('click', (e) => {
+            const width = progressBar.clientWidth;
+            video.currentTime = (e.offsetX / width) * video.duration;
+        });
+
+        // 10 सेकंड आगे-पीछे करना
+        skipForward.addEventListener('click', () => { video.currentTime += 10; });
+        skipBackward.addEventListener('click', () => { video.currentTime -= 10; });
+
+        // डबल टैप सीकिंग (मोबाइल और पीसी दोनों के लिए)
+        let lastTap = 0;
+        videoContainer.addEventListener('click', (e) => {
+            let now = new Date().getTime();
+            let timeSince = now - lastTap;
+            if (timeSince < 300 && timeSince > 0) {
+                let rect = videoContainer.getBoundingClientRect();
+                let x = e.clientX - rect.left;
+                if (x < rect.width / 2) {
+                    video.currentTime -= 10;
+                    showTapEffect(tapLeftText);
+                } else {
+                    video.currentTime += 10;
+                    showTapEffect(tapRightText);
+                }
+            }
+            lastTap = now;
+        });
+
+        function showTapEffect(elem) {
+            elem.style.opacity = '1';
+            setTimeout(() => { elem.style.opacity = '0'; }, 500);
+        }
+
+        // स्पीड मेनू टॉगल
+        speedBtn.addEventListener('click', () => {
+            settingsMenu.style.display = settingsMenu.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        function setSpeed(rate) {
+            video.playbackRate = rate;
+            settingsMenu.style.display = 'none';
+            speedBtn.textContent = `⚙ ${rate}x`;
+        }
+
+        // फुलस्क्रीन
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                videoContainer.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+    </script>
+</body>
+</html>
