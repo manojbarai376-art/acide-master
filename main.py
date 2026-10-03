@@ -65,6 +65,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
+    @staticmethod
     def _ask_local_ai_to_fix_main_data(broken_data):
         import requests
         import json
@@ -73,7 +74,7 @@ if __name__ == "__main__":
                 "model": "llama3",
                 "prompt": f"Fix this broken data format into a clean valid JSON list structure, return only JSON: {broken_data}",
                 "stream": False
-        }
+           }
             response = requests.post("http://localhost:11434/api/generate", json=payload, timeout=5)
             if response.status_code == 200:
                 fixed_text = response.json().get("response", "").strip()
