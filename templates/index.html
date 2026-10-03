@@ -91,7 +91,7 @@
                 {% endif %}
                 <div class="card-content">
                     <div class="card-title">{{ item.title or item.name }}</div>
-                    <a href="{{ url_for('anime_detail', url=item.url or item.link) }}" class="watch-btn">Watch details</a>
+                    <a href="{{ url_for('anime_detail', url=item.url or item.link) }}" class="watch-btn">Watch</a>
                 </div>
             </div>
             {% endfor %}

@@ -37,6 +37,7 @@
         .anime-poster { display: block; width: min(100%, 300px); max-height: 430px; object-fit: cover; background: #292929; }
         .poster-placeholder { width: min(100%, 300px); min-height: 220px; display: grid; place-items: center; background: #292929; color: #aaa; }
         .source-link { display: inline-block; margin-top: 12px; padding: 10px 14px; background: #e50914; border-radius: 4px; color: white; text-decoration: none; }
+        .playback-unavailable { width: 100%; min-height: 220px; display: grid; place-items: center; padding: 20px; box-sizing: border-box; background: #1a1a1a; color: #ccc; text-align: center; }
         .seasons, .episodes { margin-top: 15px; }
         .episode-btn { background: #222; color: white; padding: 8px 14px; border: 1px solid #444; border-radius: 6px; cursor: pointer; margin-right: 8px; transition: 0.2s; }
         .episode-btn:hover { background: #e50914; border-color: #e50914; }
@@ -54,7 +55,7 @@
             <div class="tap-effect tap-left" id="tapLeftText">◀ -10s</div>
             <div class="tap-effect tap-right" id="tapRightText">+10s ▶</div>
             
-            <video id="animeVideo" src=""></video>
+            <video id="animeVideo" src="{{ anime.video_url }}" preload="metadata"></video>
 
             <!-- सेटिंग्स पॉपअप मेनू -->
             <div class="menu-popup" id="settingsMenu">
@@ -82,6 +83,10 @@
                 </div>
             </div>
         </div>
+        {% else %}
+        <div class="playback-unavailable" role="status">
+            <p>Playback is not available yet because this title has no video stream in the catalogue.</p>
+        </div>
         {% endif %}
 
         <div class="anime-info">
@@ -92,8 +97,6 @@
             <div class="poster-placeholder">Poster unavailable</div>
             {% endif %}
             <h1>{{ anime.title }}</h1>
-            <p>Episode playback and current availability are provided by the source page.</p>
-            <a class="source-link" href="{{ anime.url }}" target="_blank" rel="noopener noreferrer">Open source page</a>
             <p><a href="{{ url_for('index') }}">Back to anime list</a></p>
         </div>
     </div>

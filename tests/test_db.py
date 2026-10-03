@@ -12,12 +12,16 @@ def test_local_json_round_trip(tmp_path, monkeypatch):
 
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.setattr(db_manager, "DB_PATH", str(tmp_path / "storage.json"))
-    items = [{"title": "Example", "url": "https://example.com/anime", "image": "poster.jpg"}]
+    items = [{
+        "title": "Example", "url": "https://example.com/anime",
+        "image": "poster.jpg", "video_url": "https://cdn.example/anime.mp4",
+    }]
 
     assert DBManager.save_data(items) is True
     assert DBManager.load_data() == {"anime_list": [{
         "title": "Example", "url": "https://example.com/anime",
         "image": "https://example.com/poster.jpg",
+        "video_url": "https://cdn.example/anime.mp4",
     }]}
 
 def test_empty_scrape_does_not_replace_existing_data(tmp_path, monkeypatch):

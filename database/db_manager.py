@@ -43,7 +43,14 @@ class DBManager:
             if image and urlsplit(image).scheme not in {"http", "https"}:
                 image = ""
 
-            normalized.append({"title": title, "url": anime_url, "image": image})
+            normalized_item = {"title": title, "url": anime_url, "image": image}
+            video_url = item.get("video_url") or item.get("stream_url")
+            if video_url:
+                video_url = urljoin(anime_url, str(video_url).strip())
+                if urlsplit(video_url).scheme in {"http", "https"}:
+                    normalized_item["video_url"] = video_url
+
+            normalized.append(normalized_item)
             seen_urls.add(anime_url)
         return normalized
 
@@ -133,11 +140,14 @@ class DBManager:
             if item["url"] in seen_urls:
                 continue
             seen_urls.add(item["url"])
-            unique_items.append({
+            normalized_item = {
                 "title": str(item["title"]),
                 "url": str(item["url"]),
                 "image": str(item.get("image") or ""),
-            })
+            }
+            if item.get("video_url"):
+                normalized_item["video_url"] = str(item["video_url"])
+            unique_items.append(normalized_item)
 
         if not unique_items:
             print("No valid anime items to save; keeping existing data.")

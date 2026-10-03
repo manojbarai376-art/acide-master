@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 from flask import Flask, abort, render_template, request
 
@@ -45,10 +45,17 @@ def anime_detail(anime_url=None):
     if not anime:
         abort(404)
 
+    video_url = anime.get("video_url") or anime.get("stream_url") or ""
+    if video_url:
+        video_url = urljoin(requested_url, str(video_url).strip())
+        if urlsplit(video_url).scheme not in {"http", "https"}:
+            video_url = ""
+
     anime = {
         "title": anime.get("title") or anime.get("name") or "Anime",
         "url": requested_url,
         "image": anime.get("image") or anime.get("poster") or "",
+        "video_url": video_url,
     }
     return render_template('detail.html', anime=anime)
 
