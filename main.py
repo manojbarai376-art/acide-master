@@ -21,8 +21,15 @@ app = Flask(__name__)
 def index():
     try:
         db_data = DBManager.load_data()
-        items = db_data if isinstance(db_data, list) else []
+        # यहाँ चेक कर रहे हैं कि डेटा डिक्शनरी में है या सीधे लिस्ट है
+        if isinstance(db_data, dict):
+            items = db_data.get("anime_list", [])
+        elif isinstance(db_data, list):
+            items = db_data
+        else:
+            items = []
     except Exception as e:
+        print(f"Error loading index data: {e}")
         items = []
     
     return render_template('index.html', items=items)
